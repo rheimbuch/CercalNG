@@ -13,12 +13,16 @@
 
 @implementation AppController : CPObject
 {
-    CPWindow    theWindow; //this "outlet" is connected automatically by the Cib
+    IBOutlet    CPWindow    theWindow; //this "outlet" is connected automatically by the Cib
+    IBOutlet    CPTableView dataTableView;
+    
+                DataController  dataStore;
 }
 
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
 {
     // This is called when the application is done loading.
+    dataStore = [[DataController alloc] initWithSampleData];
 }
 
 - (void)awakeFromCib
@@ -29,6 +33,18 @@
     
     // In this case, we want the window from Cib to become our full browser window
     [theWindow setFullBridge:YES];
+}
+
+// delegate methods for dataTableView
+-(int)numberOfRowsInTableView: (CPTableView)aTableView {
+    return [[dataStore data] count];
+}
+
+-(id)tableView: (CPTableView)aTableView
+     objectValueForTableColumn: (CPTableColumn)aTableColumn
+     row: (int)rowIndex {
+    
+    return nil;
 }
 
 @end

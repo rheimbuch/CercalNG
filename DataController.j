@@ -2,7 +2,7 @@
 @import "DemoData.j"
 
 @implementation DataController : CPObject {
-    CPArray data;
+    CPArray data @accessors;
     CPString urlPath;
 }
 
@@ -14,13 +14,14 @@
     return self;
 }
 
--(void)setData: (CPArray)someData {
-    data = someData;
+-(id)initWithSamapleData {
+    self = [self init];
+    if(self) {
+        [self loadExampleData];
+    }
+    return self;
 }
 
--(CPArray)data {
-    return data;
-}
 
 -(void)loadExampleData {
     [self setData: [DemoData exampleData]];

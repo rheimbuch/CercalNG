@@ -1,5 +1,6 @@
 @import <Foundation/CPObject.j>
 @import "DemoData.j"
+@import "DataItem.j"
 
 @implementation DataController : CPObject {
     CPArray data @accessors;
@@ -14,17 +15,18 @@
     return self;
 }
 
--(id)initWithSamapleData {
-    self = [self init];
-    if(self) {
-        [self loadExampleData];
+
+
++(DataController)withExampleData {
+    var ds = [[self alloc] init];
+    var exampleData = [DemoData exampleData];
+    var newData = []
+    for(var i in exampleData){
+        newData[i] = [[DataItem alloc] initWithJSObject: exampleData[i]];
     }
-    return self;
-}
-
-
--(void)loadExampleData {
-    [self setData: [DemoData exampleData]];
+    [ds setData: [[CPArray alloc] initWithArray: newData]];
+    console.debug(ds);
+    return ds;
 }
 
 

@@ -35,7 +35,7 @@
             __id:"/Data/1",
             source: [],
             project: {'$ref':"/Project/1"},
-            description: null,
+            description: "",
             metadata: {
                 author:"Ryan Heimbuch"
             },
@@ -46,7 +46,7 @@
             __id:"/Data/2",
             source: [{'$ref':'/Data/1'}],
             project: {'$ref':"/Project/1"},
-            description: "Derivative of Data/1"
+            description: "Derivative of Data/1",
             metadata: {
                 author:"Ryan Heimbuch"
             },
@@ -57,7 +57,7 @@
             __id:"/Data/3",
             source: [{'$ref':'/Data/1'}],
             project: {'$ref':"/Project/1"},
-            description: "Image rendering"
+            description: "Image rendering",
             metadata: {
                 author:"Ryan Heimbuch"
             },

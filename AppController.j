@@ -34,16 +34,35 @@
     [theWindow setFullBridge:YES];
 }
 
-// delegate methods for dataTableView
+// datasource delegate methods for dataTableView
 -(int)numberOfRowsInTableView: (CPTableView)aTableView {
-    return [[dataStore data] count];
+    var num = [[dataStore data] count];
+    console.debug([dataStore data]);
+    console.debug("numberOfRowsInTableView = " + num);
+    return num;
 }
 
 -(id)tableView: (CPTableView)aTableView
      objectValueForTableColumn: (CPTableColumn)aTableColumn
      row: (int)rowIndex {
+
+    var obj = nil;
+    obj = [[[dataStore data] objectAtIndex: rowIndex] identifier];
     
-    return nil;
+    console.debug("Getting data for row " + rowIndex);
+    console.debug("Data: " + obj);
+    return obj;
+}
+
+// delegate methods for dataTableView
+-(void)tableViewSelectionDidChange: (CPNotification)notification {
+    console.debug("Table selection changed");
+    var row = [[dataTableView selectedRowIndexes] firstIndex];
+    
+    if(row == -1) return;
+    var selectedData = [[dataStore data] objectAtIndex: row];
+    console.debug("Data selected:");
+    console.debug(selectedData);
 }
 
 @end

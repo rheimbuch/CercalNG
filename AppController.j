@@ -7,7 +7,6 @@
  */
 
 @import <Foundation/CPObject.j>
-@import "ProjectsController.j"
 @import "DataController.j"
 
 

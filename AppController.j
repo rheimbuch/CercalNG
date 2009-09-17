@@ -21,7 +21,9 @@
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
 {
     // This is called when the application is done loading.
-    dataStore = [[DataController alloc] initWithSampleData];
+    [[theWindow contentView] setBackgroundColor: [CPColor grayColor]];
+    dataStore = [DataController withExampleData];
+    [dataTableView reloadData];
 }
 
 - (void)awakeFromCib

@@ -2,19 +2,56 @@
 @import "DemoData.j"
 @import "DataItem.j"
 
+dojo.require('dojox.data.PersevereStore');
+
 @implementation DataController : CPObject {
     CPArray data @accessors;
-    CPString urlPath;
+    CPString urlPath @accessors(readonly);
+    id _delegate @accessors(property=delegate);
+    id _dataStore;
 }
 
 -(id)initWithRestPath: (CPString)aUrlPath {
-    self = [self init];
+    self = [super init];
     if(self){
+        data = [[CPArray alloc] init];
         urlPath = aUrlPath;
+        _dataStore = new dojox.data.PersevereStore({
+            target: urlPath
+        });
     }
+    console.debug("DataController with path: " + urlPath);
+    console.debug(self);
     return self;
 }
 
+-(void)fetchAll {
+    [self fetchWithQuery: ""];
+}
+
+-(void)fetchWithQuery: (CPString)jsonQuery {
+    _dataStore.fetch({
+        query: jsonQuery,
+        onComplete: function(results) {
+            console.debug("Fetch Completed");
+            console.debug(self);
+            console.debug(results);
+            [self setData: results];
+           // [self _handleFetchedData: results];
+           if([_delegate respondsToSelector:@selector(dataStore:didReceiveData:)])
+               ([_delegate dataStore:self didReceiveData:data]);
+        }
+    });
+}
+
+// -(void)_handleFetchedData: (id)data {
+//     console.debug("in _handleFetchedData");
+//     console.debug(data);
+//     
+//     if([_delegate respondsToSelector:@selector(dataStore:didReceiveData:)])
+//         ([_delegate dataStore:self didReceiveData:data]);
+//     [self setData: fetched];
+// }
 
 
 +(DataController)withExampleData {

@@ -22,8 +22,11 @@
 {
     // This is called when the application is done loading.
     [[theWindow contentView] setBackgroundColor: [CPColor grayColor]];
-    dataStore = [DataController withExampleData];
-    [dataTableView reloadData];
+    //dataStore = [DataController withExampleData];
+    dataStore = [[DataController alloc] initWithRestPath: "/CercalSystem/"];
+    [dataStore setDelegate: self];
+    [dataStore fetchAll];
+    //[dataTableView reloadData];
 }
 
 - (void)awakeFromCib
@@ -36,10 +39,14 @@
     [theWindow setFullBridge:YES];
 }
 
+// datacontroller delegate methods
+-(void)dataStore:(DataController)ds didReceiveData:(CPArray)data {
+    [dataTableView reloadData];
+}
+
 // datasource delegate methods for dataTableView
 -(int)numberOfRowsInTableView: (CPTableView)aTableView {
     var num = [[dataStore data] count];
-    console.debug([dataStore data]);
     console.debug("numberOfRowsInTableView = " + num);
     return num;
 }
@@ -49,7 +56,7 @@
      row: (int)rowIndex {
 
     var obj = nil;
-    obj = [[[dataStore data] objectAtIndex: rowIndex] identifier];
+    obj = [[dataStore data] objectAtIndex: rowIndex].id;
     
     console.debug("Getting data for row " + rowIndex);
     console.debug("Data: " + obj);

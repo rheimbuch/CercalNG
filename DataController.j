@@ -8,7 +8,7 @@ dojo.require('dojox.data.PersevereStore');
     CPArray data @accessors;
     CPString urlPath @accessors(readonly);
     id _delegate @accessors(property=delegate);
-    id _dataStore;
+    id _dataStore @accessors(property=dataStore,readonly);
 }
 
 -(id)initWithRestPath: (CPString)aUrlPath {

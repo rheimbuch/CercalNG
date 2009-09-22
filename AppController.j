@@ -8,12 +8,15 @@
 
 @import <Foundation/CPObject.j>
 @import "DataController.j"
+@import "DataView.j"
 
 
 @implementation AppController : CPObject
 {
     IBOutlet    CPWindow    theWindow; //this "outlet" is connected automatically by the Cib
     IBOutlet    CPTableView dataTableView;
+    IBOutlet    CPTextField dataTableSearchField;
+    IBOutlet    DataView    dataView;
     
                 DataController  dataStore;
 }
@@ -27,6 +30,8 @@
     [dataStore setDelegate: self];
     [dataStore fetchAll];
     //[dataTableView reloadData];
+    [dataView setDataStore: [dataStore dataStore]];
+    console.debug(dataView);
 }
 
 - (void)awakeFromCib
@@ -37,6 +42,18 @@
     
     // In this case, we want the window from Cib to become our full browser window
     [theWindow setFullBridge:YES];
+}
+
+-(void)queryDataWith: (id)sender {
+    console.debug(sender);
+    var query = [sender stringValue];
+    if(query){
+        var fullQuery = "?metadata." + query;
+        [dataStore fetchWithQuery: fullQuery];
+    }
+    else {
+        [dataStore fetchAll];
+    }
 }
 
 // datacontroller delegate methods
@@ -55,12 +72,15 @@
      objectValueForTableColumn: (CPTableColumn)aTableColumn
      row: (int)rowIndex {
 
-    var obj = nil;
-    obj = [[dataStore data] objectAtIndex: rowIndex].id;
+    if(aTableView === dataTableView){
+        var obj = nil;
+        obj = [[dataStore data] objectAtIndex: rowIndex].id;
     
-    console.debug("Getting data for row " + rowIndex);
-    console.debug("Data: " + obj);
-    return obj;
+        console.debug("Getting data for row " + rowIndex);
+        console.debug("Data: " + obj);
+        return obj;
+    }
+
 }
 
 // delegate methods for dataTableView
@@ -72,6 +92,20 @@
     var selectedData = [[dataStore data] objectAtIndex: row];
     console.debug("Data selected:");
     console.debug(selectedData);
+    
+    console.debug("Setting dataView dataItem");
+    [dataView setDataItem: selectedData];
+}
+
+
+-(void)showAboutDialog:(id)sender {
+    var dialog = [[CPAlert alloc] init];
+    [dialog setAlertStyle: CPInformationalAlertStyle];
+    [dialog setTitle: "About"];
+    [dialog setMessageText: "Designed by the Yogo development team."];
+    [dialog addButtonWithTitle:"Close"];
+    [dialog runModal];
+    console.debug(dialog);
 }
 
 @end

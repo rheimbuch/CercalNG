@@ -28,7 +28,7 @@
     //dataStore = [DataController withExampleData];
     dataStore = [[DataController alloc] initWithRestPath: "/CercalSystem/"];
     [dataStore setDelegate: self];
-    [dataStore fetchAll];
+    [dataStore setQuery: ""];
     //[dataTableView reloadData];
     [dataView setDataStore: [dataStore dataStore]];
     console.debug(dataView);
@@ -49,10 +49,10 @@
     var query = [sender stringValue];
     if(query){
         var fullQuery = "?metadata." + query;
-        [dataStore fetchWithQuery: fullQuery];
+        [dataStore setQuery: fullQuery];
     }
     else {
-        [dataStore fetchAll];
+        [dataStore setQuery: ""];
     }
 }
 

@@ -17,6 +17,7 @@
     IBOutlet    CPTableView dataTableView;
     IBOutlet    CPTextField dataTableSearchField;
     IBOutlet    DataView    dataView;
+    IBOutlet    CPTextField locationLabel;
     
                 DataController  dataStore;
 }
@@ -31,7 +32,10 @@
     [dataStore setQuery: ""];
     //[dataTableView reloadData];
     [dataView setDataStore: [dataStore dataStore]];
-    console.debug(dataView);
+    
+    // Setup location label observing
+    [locationLabel setStringValue: [dataStore urlPath]];
+    [dataStore addObserver: self forKeyPath:"urlPath" options: CPKeyValueObservingOptionNew context: nil];
 }
 
 - (void)awakeFromCib
@@ -42,6 +46,18 @@
     
     // In this case, we want the window from Cib to become our full browser window
     [theWindow setFullBridge:YES];
+    
+}
+
+// Handle observing
+-(void)observeValueForKeyPath:(CPString)keyPath
+        ofObject:(id)object
+        change:(CPDictionary)change
+        context:(id)context {
+
+    console.debug("location changed");
+    [locationLabel setStringValue: [dataStore urlPath]];
+
 }
 
 -(void)queryDataWith: (id)sender {
@@ -89,12 +105,22 @@
     var row = [[dataTableView selectedRowIndexes] firstIndex];
     
     if(row == -1) return;
+    console.debug([dataStore data]);
+    TESTDATA = [dataStore data];
     var selectedData = [[dataStore data] objectAtIndex: row];
     console.debug("Data selected:");
     console.debug(selectedData);
     
     console.debug("Setting dataView dataItem");
     [dataView setDataItem: selectedData];
+}
+
+
+-(void)connectTo:(id)sender {
+    var url = prompt("Connect to database:", "http://localhost:8080/CercalSystem/");
+    if(url){
+        [dataStore setUrlPath: url];
+    }
 }
 
 

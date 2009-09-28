@@ -3,6 +3,7 @@
 @import "DataItem.j"
 
 dojo.require('dojox.data.PersevereStore');
+dojo.require("dojox.io.xhrScriptPlugin");
 
 @implementation DataController : CPObject {
     CPArray data @accessors;
@@ -41,6 +42,7 @@ dojo.require('dojox.data.PersevereStore');
 
 -(void)_initializeDataStore {
     if(urlPath){
+        dojox.io.xhrScriptPlugin(urlPath, "callback", dojox.io.xhrPlugins.fullHttpAdapter);
         _dataStore = new dojox.data.PersevereStore({
             target: urlPath
         });
@@ -54,7 +56,7 @@ dojo.require('dojox.data.PersevereStore');
             console.debug("Fetch Completed");
             console.debug(self);
             console.debug(results);
-            [self setData: results];
+            [self setData: [CPArray arrayWithArray: results]];
            if([_delegate respondsToSelector:@selector(dataStore:didReceiveData:)])
                ([_delegate dataStore:self didReceiveData:data]);
         }

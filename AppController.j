@@ -9,6 +9,7 @@
 @import <Foundation/CPObject.j>
 @import "DataController.j"
 @import "DataView.j"
+@import "Login.j"
 
 
 @implementation AppController : CPObject
@@ -19,6 +20,9 @@
     IBOutlet    DataView    dataView;
     IBOutlet    CPTextField locationLabel;
     
+                Login       loginPanel;
+
+    
                 DataController  dataStore;
 }
 
@@ -27,15 +31,17 @@
     // This is called when the application is done loading.
     [[theWindow contentView] setBackgroundColor: [CPColor grayColor]];
     //dataStore = [DataController withExampleData];
-    dataStore = [[DataController alloc] initWithRestPath: "/CercalSystem/"];
+    dataStore = [[DataController alloc] init];
     [dataStore setDelegate: self];
-    [dataStore setQuery: ""];
     //[dataTableView reloadData];
     [dataView setDataStore: [dataStore dataStore]];
     
     // Setup location label observing
     [locationLabel setStringValue: [dataStore urlPath]];
     [dataStore addObserver: self forKeyPath:"urlPath" options: CPKeyValueObservingOptionNew context: nil];
+    
+    loginPanel = [[Login alloc] init];
+    [loginPanel setDelegate: self];
 }
 
 - (void)awakeFromCib
@@ -117,10 +123,13 @@
 
 
 -(void)connectTo:(id)sender {
-    var url = prompt("Connect to database:", "http://localhost:8080/CercalSystem/");
-    if(url){
-        [dataStore setUrlPath: url];
-    }
+    [loginPanel runModal];
+}
+
+// Login delegate method
+-(void)connectToServer: (CPString)url {
+    console.debug("Connecting to: " + url);
+    [dataStore setUrlPath: url];
 }
 
 

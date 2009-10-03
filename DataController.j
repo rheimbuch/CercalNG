@@ -62,6 +62,11 @@ dojo.require("dojox.io.xhrScriptPlugin");
             [self setData: [CPArray arrayWithArray: results]];
            if([_delegate respondsToSelector:@selector(dataStore:didReceiveData:)])
                ([_delegate dataStore:self didReceiveData:data]);
+        },
+        onError: function(err) {
+            console.debug(err);
+            if([_delegate respondsToSelector:@selector(dataStore:errorOccurredOnFetch:)])
+                [_delegate dataStore:self errorOccurredOnFetch: err];
         }
     });
 }

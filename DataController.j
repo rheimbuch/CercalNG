@@ -14,16 +14,11 @@ dojo.require("dojox.io.xhrScriptPlugin");
 }
 
 -(id)init {
-    return [self initWithRestPath: "/CercalSystem/"];
-}
-
--(id)initWithRestPath: (CPString)aUrlPath {
     self = [super init];
     if(self){
         data = [[CPArray alloc] init];
-        urlPath = aUrlPath;
+        urlPath = "";
         query = "";
-        [self _initializeDataStore];
         
         [self addObserver: self 
                 forKeyPath: "urlPath" 
@@ -33,6 +28,14 @@ dojo.require("dojox.io.xhrScriptPlugin");
                 forKeyPath: "query"
                 options: CPKeyValueObservingOptionNew
                 context: nil];
+    }
+    return self;
+}
+
+-(id)initWithRestPath: (CPString)aUrlPath {
+    self = [self init];
+    if(self){
+        [self setUrlPath: aUrlPath]; // will trigger observer and initialize datastore  
     }
     console.debug("DataController with path: " + urlPath);
     console.debug(self);

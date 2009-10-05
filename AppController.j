@@ -7,6 +7,7 @@
  */
 
 @import <Foundation/CPObject.j>
+@import <AppKit/CPToolbar.j>
 @import "DataController.j"
 @import "DataView.j"
 @import "Login.j"
@@ -19,6 +20,7 @@
     IBOutlet    CPTextField dataTableSearchField;
     IBOutlet    DataView    dataView;
     IBOutlet    CPTextField locationLabel;
+                CPToolbar   mainToolbar;
     
                 Login       loginPanel;
 
@@ -30,6 +32,12 @@
 {
     // This is called when the application is done loading.
     [[theWindow contentView] setBackgroundColor: [CPColor grayColor]];
+    //setup the toolbar
+    mainToolbar = [[CPToolbar alloc] initWithIdentifier: "Main"];
+    [mainToolbar setDelegate: self];
+    [mainToolbar setVisible: YES];
+    [theWindow setToolbar: mainToolbar];
+    
     //dataStore = [DataController withExampleData];
     dataStore = [[DataController alloc] init];
     [dataStore setDelegate: self];
@@ -141,6 +149,49 @@
     [dialog addButtonWithTitle:"Close"];
     [dialog runModal];
     console.debug(dialog);
+}
+
+// Toolbar delegate methods
+-(CPArray)toolbarAllowedItemIdentifiers: (CPToolbar)aToolbar {
+    return ["ConnectDatabaseToolbarItem", "EditPropertyToolbarItem"];
+}
+
+-(CPArray)toolbarDefaultItemIdentifiers: (CPToolbar)aToolbar {
+    return ["ConnectDatabaseToolbarItem", "EditPropertyToolbarItem"];
+}
+
+-(CPToolbarItem)toolbar: (CPToolbar)aToolbar itemForItemIdentifier: (CPString)anItemIdentifier willBeInsertedIntoToolbar: (BOOL)aFlag {
+    var toolbarItem = [[CPToolbarItem alloc] initWithItemIdentifier: anItemIdentifier];
+    var mainBundle = [CPBundle mainBundle];
+    var iconSize = CPSizeMake(32,32);
+    
+    switch(anItemIdentifier) {
+    case "ConnectDatabaseToolbarItem":
+        var image = [[CPImage alloc] initWithContentsOfFile: [mainBundle pathForResource: "folder_green_ideas.png"] size: iconSize];
+        var highlightImage = [[CPImage alloc] initWithContentsOfFile: [mainBundle pathForResource: "folder_green_ideas-highlight.png"] size: iconSize];
+        [toolbarItem setImage: image];
+        [toolbarItem setAlternateImage: highlightImage];
+        [toolbarItem setTarget: self];
+        [toolbarItem setAction: @selector(connectTo:)];
+        [toolbarItem setLabel: "Connect to Database"];
+        break;
+    case "EditPropertyToolbarItem":
+        var image = [[CPImage alloc] initWithContentsOfFile: [mainBundle pathForResource: "tablet.png"] size: iconSize];
+        var highlightImage = [[CPImage alloc] initWithContentsOfFile: [mainBundle pathForResource: "tablet-highlight.png"] size: iconSize];
+        
+        [toolbarItem setImage: image];
+        [toolbarItem setAlternateImage: highlightImage];
+        
+        // [toolbarItem setTarget: self];
+        //         [toolbarItem setAction: @selector(editProperty:)];
+        [toolbarItem setLabel: "Edit Property"];
+        break;
+    default:
+    }
+    
+    [toolbarItem setMinSize:iconSize];
+    [toolbarItem setMaxSize:iconSize];
+    return toolbarItem;
 }
 
 @end

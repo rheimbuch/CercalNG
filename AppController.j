@@ -11,6 +11,7 @@
 @import "DataController.j"
 @import "DataView.j"
 @import "Login.j"
+@import "ToolbarSearchView.j"
 
 
 @implementation AppController : CPObject
@@ -21,6 +22,7 @@
     IBOutlet    DataView    dataView;
     IBOutlet    CPTextField locationLabel;
                 CPToolbar   mainToolbar;
+                ToolbarSearchView   searchView;
     
                 Login       loginPanel;
 
@@ -45,8 +47,16 @@
     [dataView setDataStore: [dataStore dataStore]];
     
     // Setup location label observing
-    [locationLabel setStringValue: [dataStore urlPath]];
-    [dataStore addObserver: self forKeyPath:"urlPath" options: CPKeyValueObservingOptionNew context: nil];
+    // locationLabel = [CPTextField labelWithTitle: "http://..."];
+    //     [locationLabel setStringValue: [dataStore urlPath]];
+    //     [dataStore addObserver: self forKeyPath:"urlPath" options: CPKeyValueObservingOptionNew context: nil];
+    
+    // search view for toolbar
+    // searchView = [[ToolbarSearchView alloc] initWithFrame: CGRectMake(0,0,180,32)];
+    //     [searchView setAutoresizingMask: CPViewWidthSizable];
+    //     var searchField = [searchView searchField];
+    //     [searchField setTarget: self];
+    //     [searchField setAction: @selector(queryDataWith:)];
     
     loginPanel = [[Login alloc] init];
     [loginPanel setDelegate: self];
@@ -153,11 +163,11 @@
 
 // Toolbar delegate methods
 -(CPArray)toolbarAllowedItemIdentifiers: (CPToolbar)aToolbar {
-    return ["ConnectDatabaseToolbarItem", "EditPropertyToolbarItem"];
+    return [CPToolbarSeparatorItemIdentifier, CPToolbarFlexibleSpaceItemIdentifier, CPToolbarSpaceItemIdentifier, "ConnectDatabaseToolbarItem", "EditPropertyToolbarItem", "SearchQueryToolbarItem"];
 }
 
 -(CPArray)toolbarDefaultItemIdentifiers: (CPToolbar)aToolbar {
-    return ["ConnectDatabaseToolbarItem", "EditPropertyToolbarItem"];
+    return ["ConnectDatabaseToolbarItem", CPToolbarSeparatorItemIdentifier, "EditPropertyToolbarItem", CPToolbarFlexibleSpaceItemIdentifier, "SearchQueryToolbarItem"];
 }
 
 -(CPToolbarItem)toolbar: (CPToolbar)aToolbar itemForItemIdentifier: (CPString)anItemIdentifier willBeInsertedIntoToolbar: (BOOL)aFlag {
@@ -174,6 +184,8 @@
         [toolbarItem setTarget: self];
         [toolbarItem setAction: @selector(connectTo:)];
         [toolbarItem setLabel: "Connect to Database"];
+        [toolbarItem setMinSize:iconSize];
+        [toolbarItem setMaxSize:iconSize];
         break;
     case "EditPropertyToolbarItem":
         var image = [[CPImage alloc] initWithContentsOfFile: [mainBundle pathForResource: "tablet.png"] size: iconSize];
@@ -185,12 +197,25 @@
         // [toolbarItem setTarget: self];
         //         [toolbarItem setAction: @selector(editProperty:)];
         [toolbarItem setLabel: "Edit Property"];
+        [toolbarItem setMinSize:iconSize];
+        [toolbarItem setMaxSize:iconSize];
+        break;
+    case "SearchQueryToolbarItem":
+        var searchView = [[ToolbarSearchView alloc] initWithFrame: CGRectMake(0,0,180,32)];
+        [searchView setAutoresizingMask: CPViewWidthSizable];
+        var searchField = [searchView searchField];
+        [searchField setTarget: self];
+        [searchField setAction: @selector(queryDataWith:)];
+        
+        [toolbarItem setView: searchView];
+        [toolbarItem setLabel: "Search"];
+        [toolbarItem setMinSize:CGSizeMake(180,32)];
+        [toolbarItem setMaxSize:CGSizeMake(180,32)];
         break;
     default:
     }
     
-    [toolbarItem setMinSize:iconSize];
-    [toolbarItem setMaxSize:iconSize];
+    
     return toolbarItem;
 }
 

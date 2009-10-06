@@ -50,25 +50,30 @@ dojo.require("dojox.io.xhrScriptPlugin");
             target: urlPath
         });
     }
+    else {
+        _dataStore = nil;
+    }
 }
 
 -(void)_fetch {
-    _dataStore.fetch({
-        query: query,
-        onComplete: function(results) {
-            console.debug("Fetch Completed");
-            console.debug(self);
-            console.debug(results);
-            [self setData: [CPArray arrayWithArray: results]];
-           if([_delegate respondsToSelector:@selector(dataStore:didReceiveData:)])
-               ([_delegate dataStore:self didReceiveData:data]);
-        },
-        onError: function(err) {
-            console.debug(err);
-            if([_delegate respondsToSelector:@selector(dataStore:errorOccurredOnFetch:)])
-                [_delegate dataStore:self errorOccurredOnFetch: err];
-        }
-    });
+    if(_dataStore) {
+        _dataStore.fetch({
+            query: query,
+            onComplete: function(results) {
+                console.debug("Fetch Completed");
+                console.debug(self);
+                console.debug(results);
+                [self setData: [CPArray arrayWithArray: results]];
+               if([_delegate respondsToSelector:@selector(dataStore:didReceiveData:)])
+                   ([_delegate dataStore:self didReceiveData:data]);
+            },
+            onError: function(err) {
+                console.debug(err);
+                if([_delegate respondsToSelector:@selector(dataStore:errorOccurredOnFetch:)])
+                    [_delegate dataStore:self errorOccurredOnFetch: err];
+            }
+        });
+    }
 }
 
 // Observer handler

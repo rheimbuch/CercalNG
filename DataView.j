@@ -2,20 +2,21 @@
 @import <AppKit/CPView.j>
 @import <AppKit/CPTableView.j>
 @import <AppKit/CPAlert.j>
+@import "PropertyValueEditor.j"
+
 
 @implementation DataView : CPView {
     id          dataItem @accessors;
     id          dataStore @accessors;
     CPTableView propertyEditor;
     CPArray     dataItemKeys;
+    PropertyValueEditor valueEditor;
 }
 
 -(id)init {
     self = [super init];
     if(self){
-        [propertyEditor setDataSource: self];
-        [propertyEditor setDelegate: self];
-        dataItemKeys = [[CPArray alloc] init];
+        [self awakeFromCib];
     }
     return self;
 }
@@ -24,7 +25,10 @@
     [propertyEditor setDataSource: self];
     [propertyEditor setDelegate: self];
     dataItemKeys = [[CPArray alloc] init];
+    valueEditor = [[PropertyValueEditor alloc] init];
+    [valueEditor setDelegate: self];
 }
+
 
 -(void)setDataItem: (id)aDataItem {
     dataItem = aDataItem;
@@ -36,6 +40,11 @@
     }
     console.debug(self);
     [propertyEditor reloadData];
+}
+
+-(void)editSelected: (id)sender {
+    console.debug("Editing selected Property");
+    [valueEditor show: sender];
 }
 
 // datasource delegate methods for TableView
@@ -83,6 +92,25 @@
 }
 
 
+-(void)tableViewSelectionDidChange: (CPNotification)notification {
+    var row = [[propertyEditor selectedRowIndexes] firstIndex];
+    var key = dataItemKeys[row];
+    var metadata = dataItem.metadata;
+    var value = metadata[key];
+    console.debug("dataview selection changed");
+    console.debug([row, key, value]);
+    console.debug(metadata);
+    [valueEditor setSelectedProperty: key];
+    [valueEditor setRepresentedObject: metadata];
+}
+
+// PropertyValueEditor delegate method
+-(void)savedProperty: (CPString)aProperty forObject: (JSObject)anObject {
+    
+    [propertyEditor reloadData];
+    console.debug(dataStore);
+    dataStore.changing(anObject);
+}
 
 
 

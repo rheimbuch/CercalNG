@@ -144,10 +144,26 @@
     [loginPanel runModal];
 }
 
+-(void)logout: (id)sender {
+    // Need to login with nil credentials to invalidate login session
+    [loginPanel authenticateToServer: [dataSource urlPath]
+                    withUser: nil
+                    andPassword: nil];
+    
+    [dataSource setUrlPath: ""];
+}
+
+
+
+-(void)saveDatabase: (id)sender {
+    [dataStore dataStore].save();
+}
+
 // Login delegate method
 -(void)connectToServer: (CPString)url {
     console.debug("Connecting to: " + url);
     [dataStore setUrlPath: url];
+    [dataView setDataStore: [dataStore dataStore]];
 }
 
 
@@ -194,8 +210,8 @@
         [toolbarItem setImage: image];
         [toolbarItem setAlternateImage: highlightImage];
         
-        // [toolbarItem setTarget: self];
-        //         [toolbarItem setAction: @selector(editProperty:)];
+        [toolbarItem setTarget: dataView];
+        [toolbarItem setAction: @selector(editSelected:)];
         [toolbarItem setLabel: "Edit Property"];
         [toolbarItem setMinSize:iconSize];
         [toolbarItem setMaxSize:iconSize];

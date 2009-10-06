@@ -54,7 +54,8 @@
     [loginPanel close];
 }
 
--(void)cancel: (id)selector {
+
+-(void)cancel: (id)sender {
     [CPApp abortModal];
     [loginPanel close];
 }

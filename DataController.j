@@ -10,7 +10,7 @@ dojo.require("dojox.io.xhrScriptPlugin");
     CPString urlPath @accessors;
     CPString query @accessors;
     id delegate @accessors;
-    id _dataStore @accessors(property=dataStore,readonly);
+    id dataStore @accessors(readonly);
 }
 
 -(id)init {
@@ -46,18 +46,18 @@ dojo.require("dojox.io.xhrScriptPlugin");
 -(void)_initializeDataStore {
     if(urlPath){
         dojox.io.xhrScriptPlugin(urlPath, "callback", dojox.io.xhrPlugins.fullHttpAdapter);
-        _dataStore = new dojox.data.PersevereStore({
+        dataStore = new dojox.data.PersevereStore({
             target: urlPath
         });
     }
     else {
-        _dataStore = nil;
+        dataStore = nil;
     }
 }
 
 -(void)_fetch {
-    if(_dataStore) {
-        _dataStore.fetch({
+    if(dataStore) {
+        dataStore.fetch({
             query: query,
             onComplete: function(results) {
                 console.debug("Fetch Completed");
@@ -96,7 +96,7 @@ dojo.require("dojox.io.xhrScriptPlugin");
 // }
 // 
 // -(void)fetchWithQuery: (CPString)jsonQuery {
-//     _dataStore.fetch({
+//     dataStore.fetch({
 //         query: jsonQuery,
 //         onComplete: function(results) {
 //             console.debug("Fetch Completed");

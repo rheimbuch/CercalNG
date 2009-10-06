@@ -9,7 +9,7 @@ dojo.require("dojox.io.xhrScriptPlugin");
     CPArray data @accessors;
     CPString urlPath @accessors;
     CPString query @accessors;
-    id _delegate @accessors(property=delegate);
+    id delegate @accessors;
     id _dataStore @accessors(property=dataStore,readonly);
 }
 
@@ -64,13 +64,13 @@ dojo.require("dojox.io.xhrScriptPlugin");
                 console.debug(self);
                 console.debug(results);
                 [self setData: [CPArray arrayWithArray: results]];
-               if([_delegate respondsToSelector:@selector(dataStore:didReceiveData:)])
-                   ([_delegate dataStore:self didReceiveData:data]);
+               if([delegate respondsToSelector:@selector(dataStore:didReceiveData:)])
+                   ([delegate dataStore:self didReceiveData:data]);
             },
             onError: function(err) {
                 console.debug(err);
-                if([_delegate respondsToSelector:@selector(dataStore:errorOccurredOnFetch:)])
-                    [_delegate dataStore:self errorOccurredOnFetch: err];
+                if([delegate respondsToSelector:@selector(dataStore:errorOccurredOnFetch:)])
+                    [delegate dataStore:self errorOccurredOnFetch: err];
             }
         });
     }
@@ -104,8 +104,8 @@ dojo.require("dojox.io.xhrScriptPlugin");
 //             console.debug(results);
 //             [self setData: results];
 //            // [self _handleFetchedData: results];
-//            if([_delegate respondsToSelector:@selector(dataStore:didReceiveData:)])
-//                ([_delegate dataStore:self didReceiveData:data]);
+//            if([delegate respondsToSelector:@selector(dataStore:didReceiveData:)])
+//                ([delegate dataStore:self didReceiveData:data]);
 //         }
 //     });
 // }
@@ -114,8 +114,8 @@ dojo.require("dojox.io.xhrScriptPlugin");
 //     console.debug("in _handleFetchedData");
 //     console.debug(data);
 //     
-//     if([_delegate respondsToSelector:@selector(dataStore:didReceiveData:)])
-//         ([_delegate dataStore:self didReceiveData:data]);
+//     if([delegate respondsToSelector:@selector(dataStore:didReceiveData:)])
+//         ([delegate dataStore:self didReceiveData:data]);
 //     [self setData: fetched];
 // }
 

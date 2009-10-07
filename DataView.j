@@ -69,28 +69,6 @@
 
 }
 
-// delegate methods for TableView
--(void)tableView:(CPTableView)aTableView 
-       setObjectValue:(id)objectValue
-       forTableColumn:(CPTableColumn)aTableColumn
-       row:(int)rowIndex {
-    
-    var col = [aTableColumn identifier];
-    if(col == "key"){
-        var origKey = [dataItemKeys objectAtIndex: rowIndex];
-        var newKey = objectValue;
-        [dataItemKeys replaceObject: newKey atIndex: rowIndex];
-        var value = dataStore.getValue(dataItem, "metadata."+origKey);
-        dataStore.setValue(dataItem, "metadata."+newKey, value);
-        dataStore.unsetAttribute(dataItem, "metadata."+origKey);
-    }
-    else if(col == "value"){
-        var key = [dataItemKeys objectAtIndex: rowIndex];
-        dataStore.setValue(dataItem, "metadata."+key, objectValue);
-    }
-    
-}
-
 
 -(void)tableViewSelectionDidChange: (CPNotification)notification {
     var row = [[propertyEditor selectedRowIndexes] firstIndex];

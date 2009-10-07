@@ -101,7 +101,7 @@ DataControllerDidCompleteFetch = "DataControllerDidCompleteFetch";
     !dataStore && [CPException raise: DataControllerSourceNotInitializedException
                                reason: "Data source must be initialized before a fetch can be performed."];
     
-    [[CPNotification defaultCenter] postNotificationName: DataControllerDidBeginFetch
+    [[CPNotificationCenter defaultCenter] postNotificationName: DataControllerDidBeginFetch
                                     object: self];
     
     dataStore.fetch({
@@ -114,7 +114,7 @@ DataControllerDidCompleteFetch = "DataControllerDidCompleteFetch";
             [self willChangeValueForKey: "data"];
             data =  [CPArray arrayWithArray: results];
             [self didChangeValueForKey: "data"];
-            [[CPNotification defaultCenter] postNotificationName: DataControllerDidCompleteFetch
+            [[CPNotificationCenter defaultCenter] postNotificationName: DataControllerDidCompleteFetch
                                             object: self];
 
         },

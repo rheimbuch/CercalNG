@@ -34,7 +34,7 @@
     dataItem = aDataItem;
     [dataItemKeys removeAllObjects];
     for(var i in dataItem.metadata){
-        if(!/^__/.test(i)){
+        if(!/^__/.test(i)){  // Ignore private keys that start with "__"
             [dataItemKeys addObject: i];
         }
     }

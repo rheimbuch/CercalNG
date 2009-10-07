@@ -16,6 +16,9 @@ DataControllerWillChangeObject = "DataControllerWillChangeObject";
 DataControllerDidChangeObject = "DataControllerDidChangeObject";
 DataControllerDidSaveChanges = "DataControllerDidSaveChanges";
 DataControllerDidRevertChanges = "DataControllerDidRevertChanges";
+DataControllerDidRecieveErrorOnSave = "DataControllerDidRecieveErrorOnSave";
+DataControllerDidBeginFetch = "DataControllerDidBeginFetch";
+DataControllerDidCompleteFetch = "DataControllerDidCompleteFetch";
 
 @implementation DataController : CPObject {
     CPArray data @accessors(readonly);
@@ -47,6 +50,10 @@ DataControllerDidRevertChanges = "DataControllerDidRevertChanges";
                 forKeyPath: "query"
                 options: CPKeyValueObservingOptionNew
                 context: nil];
+        [self addObserver: self
+                forKeyPath: "data"
+                options: CPKeyValueObservingOptionNew
+                context: nil];
     }
     return self;
 }
@@ -61,39 +68,55 @@ DataControllerDidRevertChanges = "DataControllerDidRevertChanges";
     return self;
 }
 
+-(void)reset {
+    console.debug("Resetting dataController");
+    [self setUrl: ""];
+    [self setQuery: ""];
+    [self willChangeValueForKey: "data"];
+    data = [[CPArray alloc] init];
+    [self didChangeValueForKey: "data"];
+}
+
+-(void)reload {
+    [self _fetch];
+}
+
 
 -(void)_initializeDataStore {
-    !url && [CPException raise: DataControllerUrlException 
-                             reason: "Data source cannot be initialized without a valid source url."];
-                             
-    dojox.io.xhrScriptPlugin(url, "callback", dojox.io.xhrPlugins.fullHttpAdapter);
-    dataStore = new dojox.data.PersevereStore({
-        target: url
-    });
+    // !url && [CPException raise: DataControllerUrlException 
+    //                          reason: "Data source cannot be initialized without a valid source url."];
+    if(url) {
+        dojox.io.xhrScriptPlugin(url, "callback", dojox.io.xhrPlugins.fullHttpAdapter);
+        dataStore = new dojox.data.PersevereStore({
+            target: url
+        });
+    }
+    else {
+        dataStore = nil;
+    }
 
 }
 
 -(void)_fetch {
     !dataStore && [CPException raise: DataControllerSourceNotInitializedException
                                reason: "Data source must be initialized before a fetch can be performed."];
-                               
+    
+    [[CPNotification defaultCenter] postNotificationName: DataControllerDidBeginFetch
+                                    object: self];
+    
     dataStore.fetch({
         query: query,
         onComplete: function(results) {
+
             console.debug("Fetch Completed");
             console.debug(self);
             console.debug(results);
             [self willChangeValueForKey: "data"];
             data =  [CPArray arrayWithArray: results];
             [self didChangeValueForKey: "data"];
-            
-            // Notifiy delegate that data was received
-            if([delegate respondsToSelector:@selector(dataController:didReceiveData:)])
-               ([delegate dataController:self didReceiveData:data]);
-            
-            // Broadcast notifications that data was received
-            [[CPNotificationCenter defaultCenter] postNotificationName: DataControllerDidRecieveDataNotification
-                                                  object: self];
+            [[CPNotification defaultCenter] postNotificationName: DataControllerDidCompleteFetch
+                                            object: self];
+
         },
         onError: function(err) {
             console.debug(err);
@@ -103,7 +126,11 @@ DataControllerDidRevertChanges = "DataControllerDidRevertChanges";
             
             // Broadcast notifications that data was received
             [[CPNotificationCenter defaultCenter] postNotificationName: DataControllerDidRecieveErrorNotification
-                                                  object: self];
+                                                  object: self
+                                                  userInfo: [CPDictionary dictionaryFromJSObject: {
+                                                      "error": err,
+                                                      "occurredOn": "fetch"
+                                                  }] ];
         }
     });
 }
@@ -167,23 +194,41 @@ DataControllerDidRevertChanges = "DataControllerDidRevertChanges";
 }
 
 // Save all changed data items.
--(BOOL)save {
+-(void)save {
     !dataStore && [CPException raise: DataControllerSourceNotInitializedException
                                reason: "Data source is not initialized"];
-    
-    var saved = dataStore.save();
-    
-    // Notify delegate that dataController will save changes.
-    if([delegate respondsToSelector: @selector(dataController:didSaveChangesSuccessfully:)])
-       [delegate dataController: self didSaveChangesSuccessfully: saved];
 
-    // Broadcast notification that dataController will save changes
-    [[CPNotificationCenter defaultCenter] postNotificationName: DataControllerDidSaveChanges
-                                         object: self
-                                         userInfo: [CPDictionary dictionaryWithJSObject: {
-                                              "saved": saved
-                                          }]];
-    return saved;
+    dataStore.save({
+        onComplete: function() {
+            // Notify delegate that dataController will save changes.
+            if([delegate respondsToSelector: @selector(dataController:didSaveChanges:)])
+               [delegate dataController: self didSaveChanges: YES];
+
+            // Broadcast notification that dataController will save changes
+            [[CPNotificationCenter defaultCenter] postNotificationName: DataControllerDidSaveChanges
+                                                 object: self];
+        },
+        onError: function(error) {
+            alert("An error occurred saving!");
+            [self revert]; // Error occurred saving, so we'll revert the changed data.
+            [self reload];
+            // Notify delegate that dataController save failed
+            if([delegate respondsToSelector: @selector(dataController:didSaveChanges:)])
+               [delegate dataController: self didSaveChanges: NO];
+            
+            // Notify delegate that an error occurred on save.
+            if([delegate respondsToSelector: @selector(dataController:errorOccurredOnSave:)])
+               [delegate dataController: self errorOccurredOnSave: error];
+
+            // Broadcast notification that dataController had an error saving
+            [[CPNotificationCenter defaultCenter] postNotificationName: DataControllerDidRecieveErrorNotification
+                                                 object: self
+                                                 userInfo: [CPDictionary dictionaryWithJSObject: {
+                                                     "error":error,
+                                                     "occurredOn": "save"
+                                                 }]];
+        }
+    });
 }
 
 // Observer handler
@@ -210,6 +255,15 @@ DataControllerDidRevertChanges = "DataControllerDidRevertChanges";
             if(err.name === DataControllerSourceNotInitializedException)
                 console.error(err);
         }
+    }
+    else if(keyPath == "data") {
+        // Notifiy delegate that data was received
+        if([delegate respondsToSelector:@selector(dataController:didReceiveData:)])
+           ([delegate dataController:self didReceiveData:data]);
+        
+        // Broadcast notifications that data was received
+        [[CPNotificationCenter defaultCenter] postNotificationName: DataControllerDidRecieveDataNotification
+                                              object: self];
     }
 }
 

@@ -9,6 +9,7 @@
 @import <Foundation/CPObject.j>
 @import <AppKit/CPToolbar.j>
 @import "DataController.j"
+@import "DataController+Authenticated.j"
 @import "DataView.j"
 @import "Login.j"
 @import "ToolbarSearchView.j"
@@ -27,7 +28,7 @@
                 Login       loginPanel;
 
     
-                DataController  dataStore;
+                DataController  dataController;
 }
 
 - (void)applicationDidFinishLaunching:(CPNotification)aNotification
@@ -40,16 +41,16 @@
     [mainToolbar setVisible: YES];
     [theWindow setToolbar: mainToolbar];
     
-    //dataStore = [DataController withExampleData];
-    dataStore = [[DataController alloc] init];
-    [dataStore setDelegate: self];
+    //dataController = [DataController withExampleData];
+    dataController = [[DataController alloc] init];
+    [dataController setDelegate: self];
     //[dataTableView reloadData];
-    [dataView setDataStore: [dataStore dataStore]];
+    [dataView setDataStore: dataController];
     
     // Setup location label observing
     // locationLabel = [CPTextField labelWithTitle: "http://..."];
-    //     [locationLabel setStringValue: [dataStore urlPath]];
-    //     [dataStore addObserver: self forKeyPath:"urlPath" options: CPKeyValueObservingOptionNew context: nil];
+    //     [locationLabel setStringValue: [dataController urlPath]];
+    //     [dataController addObserver: self forKeyPath:"urlPath" options: CPKeyValueObservingOptionNew context: nil];
     
     // search view for toolbar
     // searchView = [[ToolbarSearchView alloc] initWithFrame: CGRectMake(0,0,180,32)];
@@ -80,7 +81,7 @@
         context:(id)context {
 
     console.debug("location changed");
-    [locationLabel setStringValue: [dataStore urlPath]];
+    [locationLabel setStringValue: [dataController url]];
 
 }
 
@@ -89,21 +90,21 @@
     var query = [sender stringValue];
     if(query){
         var fullQuery = "?metadata." + query;
-        [dataStore setQuery: fullQuery];
+        [dataController setQuery: fullQuery];
     }
     else {
-        [dataStore setQuery: ""];
+        [dataController setQuery: ""];
     }
 }
 
 // datacontroller delegate methods
--(void)dataStore:(DataController)ds didReceiveData:(CPArray)data {
+-(void)dataController:(DataController)ds didReceiveData:(CPArray)data {
     [dataTableView reloadData];
 }
 
 // datasource delegate methods for dataTableView
 -(int)numberOfRowsInTableView: (CPTableView)aTableView {
-    var num = [[dataStore data] count];
+    var num = [[dataController data] count];
     console.debug("numberOfRowsInTableView = " + num);
     return num;
 }
@@ -114,7 +115,7 @@
 
     if(aTableView === dataTableView){
         var obj = nil;
-        obj = [[dataStore data] objectAtIndex: rowIndex].id;
+        obj = [[dataController data] objectAtIndex: rowIndex].id;
     
         console.debug("Getting data for row " + rowIndex);
         console.debug("Data: " + obj);
@@ -129,9 +130,9 @@
     var row = [[dataTableView selectedRowIndexes] firstIndex];
     
     if(row == -1) return;
-    console.debug([dataStore data]);
-    TESTDATA = [dataStore data];
-    var selectedData = [[dataStore data] objectAtIndex: row];
+    console.debug([dataController data]);
+    TESTDATA = [dataController data];
+    var selectedData = [[dataController data] objectAtIndex: row];
     console.debug("Data selected:");
     console.debug(selectedData);
     
@@ -146,24 +147,24 @@
 
 -(void)logout: (id)sender {
     // Need to login with nil credentials to invalidate login session
-    [loginPanel authenticateToServer: [dataSource urlPath]
-                    withUser: nil
-                    andPassword: nil];
-    
-    [dataSource setUrlPath: ""];
+    [dataController endAuthenticatedSession];
+    [dataController setUrl: ""];
 }
 
 
 
 -(void)saveDatabase: (id)sender {
-    [dataStore dataStore].save();
+    [dataController save];
 }
 
 // Login delegate method
--(void)connectToServer: (CPString)url {
+-(void)connectToServer: (CPString)url withUser: (CPString)user andPassword: (CPString)password {
     console.debug("Connecting to: " + url);
-    [dataStore setUrlPath: url];
-    [dataView setDataStore: [dataStore dataStore]];
+    //Need to make sure we authenticate before setting the datasource url (& fetching),
+    // otherwise we might get a restricted set of data.
+    [dataController authenticateForUrl: url withUser: user andPassword: password];
+    [dataController setUrl: url];
+    [dataView setDataStore: dataController];
 }
 
 

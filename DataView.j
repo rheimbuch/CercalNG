@@ -84,10 +84,9 @@
 
 // PropertyValueEditor delegate method
 -(void)savedProperty: (CPString)aProperty forObject: (JSObject)anObject {
-    
+    [dataStore willChangeObject: anObject];
     [propertyEditor reloadData];
-    console.debug(dataStore);
-    dataStore.changing(anObject);
+    [dataStore didChangeObject: anObject];
 }
 
 

@@ -226,6 +226,7 @@ var SearchQueryToolbarItemIdentifier = "SearchQueryToolbarItemIdentifier";
     
     if([aToolbar identifier] === ConnectedToolbarIdentifier) {
         return [DisconnectDatabaseToolbarItemIdentifier, 
+                CPToolbarSeparatorItemIdentifier,
                 SaveDatabaseToolbarItemIdentifier,
                 ReloadDatabaseToolbarItemIdentifier,
                 CPToolbarSeparatorItemIdentifier, 

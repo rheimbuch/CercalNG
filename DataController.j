@@ -1,8 +1,6 @@
 @import <Foundation/CPObject.j>
 @import <Foundation/CPException.j>
 @import <Foundation/CPNotificationCenter.j>
-@import "DemoData.j"
-@import "DataItem.j"
 
 dojo.require('dojox.data.PersevereStore');
 dojo.require("dojox.io.xhrScriptPlugin");
@@ -16,14 +14,16 @@ DataControllerDidRecieveDataNotification = "DataControllerDidRecieveDataNotifica
 DataControllerDidRecieveErrorNotification = "DataControllerDidRecieveErrorNotification";
 DataControllerWillChangeObject = "DataControllerWillChangeObject";
 DataControllerDidChangeObject = "DataControllerDidChangeObject";
+DataControllerDidSaveChanges = "DataControllerDidSaveChanges";
 DataControllerDidRevertChanges = "DataControllerDidRevertChanges";
 
 @implementation DataController : CPObject {
     CPArray data @accessors(readonly);
-    CPString urlPath @accessors;
+    CPString url @accessors;
     CPString query @accessors;
     id delegate @accessors;
     id dataStore @accessors(readonly);
+    id currentUser @accessors(readonly);
 }
 
 -(id)init {
@@ -31,16 +31,16 @@ DataControllerDidRevertChanges = "DataControllerDidRevertChanges";
     if(self){
         data = [[CPArray alloc] init];
         
-        [self willChangeValueForKey: "urlPath"];
-        urlPath = "";
-        [self didChangeValueForKey: "urlPath"];
+        [self willChangeValueForKey: "url"];
+        url = "";
+        [self didChangeValueForKey: "url"];
         
         [self willChangeValueForKey: "query"];
         query = "";
         [self didChangeValueForKey: "query"];
         
         [self addObserver: self 
-                forKeyPath: "urlPath" 
+                forKeyPath: "url" 
                 options: CPKeyValueObservingOptionNew
                 context: nil];
         [self addObserver: self
@@ -56,19 +56,19 @@ DataControllerDidRevertChanges = "DataControllerDidRevertChanges";
     if(self){
         [self setUrlPath: aUrlPath]; // will trigger observer and initialize datastore  
     }
-    console.debug("DataController with path: " + urlPath);
+    console.debug("DataController with path: " + url);
     console.debug(self);
     return self;
 }
 
 
 -(void)_initializeDataStore {
-    !urlPath && [CPException raise: DataControllerUrlException 
+    !url && [CPException raise: DataControllerUrlException 
                              reason: "Data source cannot be initialized without a valid source url."];
                              
-    dojox.io.xhrScriptPlugin(urlPath, "callback", dojox.io.xhrPlugins.fullHttpAdapter);
+    dojox.io.xhrScriptPlugin(url, "callback", dojox.io.xhrPlugins.fullHttpAdapter);
     dataStore = new dojox.data.PersevereStore({
-        target: urlPath
+        target: url
     });
 
 }
@@ -83,10 +83,12 @@ DataControllerDidRevertChanges = "DataControllerDidRevertChanges";
             console.debug("Fetch Completed");
             console.debug(self);
             console.debug(results);
-            [self setData: [CPArray arrayWithArray: results]];
+            [self willChangeValueForKey: "data"];
+            data =  [CPArray arrayWithArray: results];
+            [self didChangeValueForKey: "data"];
             
             // Notifiy delegate that data was received
-            if([delegate respondsToSelector:@selector(dataStore:didReceiveData:)])
+            if([delegate respondsToSelector:@selector(dataController:didReceiveData:)])
                ([delegate dataController:self didReceiveData:data]);
             
             // Broadcast notifications that data was received
@@ -104,7 +106,6 @@ DataControllerDidRevertChanges = "DataControllerDidRevertChanges";
                                                   object: self];
         }
     });
-
 }
 
 // Track changes to data items.
@@ -191,38 +192,25 @@ DataControllerDidRevertChanges = "DataControllerDidRevertChanges";
         change:(CPDictionary)change
         context:(id)context {
 
-    if(keyPath == "urlPath"){
+    if(keyPath == "url") {
         try {
             [self _initializeDataStore];
             [self _fetch];
         }
-        catch(err if err.name === DataControllerUrlException) {
-            console.error(err);
+        catch(err) {
+            if(err.name === DataControllerUrlException)
+                console.error(err);
         }
     }
-    else if(keyPath == "query"){
+    else if(keyPath == "query") {
         try {
             [self _fetch];
         }
-        catch(err if err.name === DataControllerSourceNotInitializedException) {
-            console.error(err);
+        catch(err) {
+            if(err.name === DataControllerSourceNotInitializedException)
+                console.error(err);
         }
     }
 }
-
-
-
-+(DataController)withExampleData {
-    var ds = [[self alloc] init];
-    var exampleData = [DemoData exampleData];
-    var newData = []
-    for(var i in exampleData){
-        newData[i] = [[DataItem alloc] initWithJSObject: exampleData[i]];
-    }
-    [ds setData: [[CPArray alloc] initWithArray: newData]];
-    console.debug(ds);
-    return ds;
-}
-
 
 @end

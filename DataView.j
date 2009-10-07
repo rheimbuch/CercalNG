@@ -33,9 +33,11 @@
 -(void)setDataItem: (id)aDataItem {
     dataItem = aDataItem;
     [dataItemKeys removeAllObjects];
-    for(var i in dataItem.metadata){
-        if(!/^__/.test(i)){  // Ignore private keys that start with "__"
-            [dataItemKeys addObject: i];
+    if(dataItem && dataItem.metadata) {
+        for(var i in dataItem.metadata){
+            if(!/^__/.test(i)){  // Ignore private keys that start with "__"
+                [dataItemKeys addObject: i];
+            }
         }
     }
     console.debug(self);
@@ -43,8 +45,10 @@
 }
 
 -(void)editSelected: (id)sender {
-    console.debug("Editing selected Property");
-    [valueEditor show: sender];
+    if([valueEditor selectedProperty]) {
+        console.debug("Editing selected Property");
+        [valueEditor show: sender];
+    }
 }
 
 // datasource delegate methods for TableView
@@ -58,6 +62,8 @@
      objectValueForTableColumn: (CPTableColumn)aTableColumn
      row: (int)rowIndex {
          var key = [dataItemKeys objectAtIndex: rowIndex];
+         if(!key) return;
+         
          var value = dataItem.metadata[key];
          console.debug(key,value);
          if([aTableColumn identifier] == "key") {
@@ -71,6 +77,9 @@
 
 
 -(void)tableViewSelectionDidChange: (CPNotification)notification {
+    if(!dataItem)
+        return;
+    
     var row = [[propertyEditor selectedRowIndexes] firstIndex];
     var key = dataItemKeys[row];
     var metadata = dataItem.metadata;
